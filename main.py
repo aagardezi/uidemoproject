@@ -2,7 +2,10 @@ import streamlit as st
 from google.cloud import storage
 from google import genai
 from google.genai import types
+import os
 import base64
+
+BUCKET_NAME = os.environ.get("BUCKET_NAME")
 
 def getfilelist(bucket_name, prefix=""):
     storage_client = storage.Client()
@@ -74,7 +77,7 @@ col1, col2 = st.columns([1,3])
 with col1:
     st.image("image/logo.png", width=150)
     if "filelist" not in st.session_state:
-        st.session_state.filelist = getfilelist("contract-analysis-sg")
+        st.session_state.filelist = getfilelist(BUCKET_NAME)
     selected_file = st.selectbox("Select File", st.session_state.filelist, key="selected_file")
     summary_clicked = st.button("Generate Summary")
 with col2:
@@ -82,4 +85,4 @@ with col2:
     if summary_clicked:
        st.write(selected_file)
        with st.container(border=True):
-        st.markdown(generate(f"gs://contract-analysis-sg/{selected_file}"))
+        st.markdown(generate(f"gs://{BUCKET_NAME}/{selected_file}"))
