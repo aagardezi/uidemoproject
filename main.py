@@ -157,7 +157,7 @@ with col2:
        st.write(selected_file)
        with st.container(border=True):
         st.markdown(generate(f"gs://{BUCKET_NAME}/{selected_file}"))
-       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file.getvalue()))
+       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file).getvalue())
     if json_clicked:
         with st.container(border=True):
             st.dataframe(generatedataframe())
