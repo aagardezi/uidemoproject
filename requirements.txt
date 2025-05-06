@@ -7,3 +7,4 @@ google-auth
 google-api-python-client
 google-auth-oauthlib
 google-genai
+streamlit-pdf-viewer

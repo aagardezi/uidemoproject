@@ -4,6 +4,8 @@ from google import genai
 from google.genai import types
 import os
 import pandas as pd
+from streamlit_pdf_viewer import pdf_viewer
+import io
 import base64
 
 import helpercode
@@ -22,6 +24,19 @@ def getfilelist(bucket_name, prefix=""):
         print(blob)
         file_list.append(blob.name)
     return file_list
+
+def download_pdf_from_gcs(bucket_name, blob_name):
+    """Downloads a PDF from GCS into a BytesIO object."""
+    try:
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+        pdf_bytes = blob.download_as_bytes()
+        return io.BytesIO(pdf_bytes)
+    except Exception as e:
+        st.error(f"Error downloading PDF '{blob_name}' from bucket '{bucket_name}': {e}")
+        return None
+
 
 def generate(file_uri):
   client = genai.Client(
@@ -142,6 +157,7 @@ with col2:
        st.write(selected_file)
        with st.container(border=True):
         st.markdown(generate(f"gs://{BUCKET_NAME}/{selected_file}"))
+       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file.getvalue()))
     if json_clicked:
         with st.container(border=True):
             st.dataframe(generatedataframe())
