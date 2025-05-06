@@ -6,7 +6,11 @@ import os
 import pandas as pd
 import base64
 
+import helpercode
+
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
+PROJECT_ID = helpercode.get_project_id()
+
 
 def getfilelist(bucket_name, prefix=""):
     storage_client = storage.Client()
@@ -22,7 +26,7 @@ def getfilelist(bucket_name, prefix=""):
 def generate(file_uri):
   client = genai.Client(
       vertexai=True,
-      project="genaillentsearch",
+      project=PROJECT_ID,
       location="us-central1",
   )
 
@@ -74,7 +78,7 @@ def generate(file_uri):
 def generatedataframe():
   client = genai.Client(
       vertexai=True,
-      project="cloud-llm-preview2",
+      project=PROJECT_ID,
       location="us-central1",
   )
 
