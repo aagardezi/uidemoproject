@@ -154,10 +154,11 @@ with col1:
 with col2:
     st.title("BUD Claims")
     if summary_clicked:
-       st.write(selected_file)
-       with st.container(border=True):
+      st.write(selected_file)
+      with st.container(border=True):
         st.markdown(generate(f"gs://{BUCKET_NAME}/{selected_file}"))
-       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file).getvalue())
+      st.title("Source PDF File")
+      pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file).getvalue())
     if json_clicked:
-        with st.container(border=True):
-            st.dataframe(generatedataframe())
+      with st.container(border=True):
+        st.dataframe(generatedataframe())
