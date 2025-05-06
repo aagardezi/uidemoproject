@@ -3,6 +3,7 @@ from google.cloud import storage
 from google import genai
 from google.genai import types
 import os
+import pandas as pd
 import base64
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
@@ -70,6 +71,55 @@ def generate(file_uri):
   return output
 
 
+def generatedataframe():
+  client = genai.Client(
+      vertexai=True,
+      project="cloud-llm-preview2",
+      location="us-central1",
+  )
+
+  msg1_text1 = types.Part.from_text(text="""Can you generate some random claims data the follows the json schema specified. make sure there are 11 different entries""")
+
+  model = "gemini-2.0-flash-001"
+  contents = [
+    types.Content(
+      role="user",
+      parts=[
+        msg1_text1
+      ]
+    ),
+  ]
+  generate_content_config = types.GenerateContentConfig(
+    temperature = 1,
+    top_p = 0.95,
+    max_output_tokens = 8192,
+    response_modalities = ["TEXT"],
+    safety_settings = [types.SafetySetting(
+      category="HARM_CATEGORY_HATE_SPEECH",
+      threshold="OFF"
+    ),types.SafetySetting(
+      category="HARM_CATEGORY_DANGEROUS_CONTENT",
+      threshold="OFF"
+    ),types.SafetySetting(
+      category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+      threshold="OFF"
+    ),types.SafetySetting(
+      category="HARM_CATEGORY_HARASSMENT",
+      threshold="OFF"
+    )],
+    response_mime_type = "application/json",
+    response_schema = {"type":"ARRAY","items":{"type":"OBJECT","properties":{"loss_location":{"type":"OBJECT","properties":{"Location Name":{"type":"STRING"},"Street Number1":{"type":"STRING"},"Street Number2":{"type":"STRING"},"Street Name":{"type":"STRING"},"City":{"type":"STRING"},"State/Region":{"type":"STRING"},"Country":{"type":"STRING"}},"required":["Location Name","Street Number1","Street Number2","Street Name","City","State/Region","Country"]},"rag":{"type":"OBJECT","properties":{"RAG Rating":{"type":"STRING","enum":["RED","AMBER","GREEN"]},"Reasoning":{"type":"STRING"}},"required":["RAG Rating"]},"denial":{"type":"OBJECT","properties":{"Claim Denied":{"type":"STRING","enum":["YES","NO","Not Known"]},"Reasoning":{"type":"STRING"}},"required":["Claim Denied"]},"bad_faith":{"type":"OBJECT","properties":{"Any Bad Faith Allegations":{"type":"STRING","enum":["YES","NO"]},"Allegations":{"type":"ARRAY","items":{"type":"STRING"},"min_items":0}},"required":["Any Bad Faith Allegations"]},"peril":{"type":"OBJECT","properties":{"Claim Peril":{"type":"STRING"},"Reasoning":{"type":"STRING"}},"required":["Claim Peril"]},"date_occurence":{"type":"OBJECT","properties":{"Date Specified":{"type":"STRING","enum":["YES","NO"]},"Day":{"type":"INTEGER","minimum":1,"maximum":31},"Month":{"type":"INTEGER","minimum":1,"maximum":12},"Year":{"type":"INTEGER","minimum":1000,"maximum":2030}},"required":["Date Specified"]},"claim_event":{"type":"OBJECT","properties":{"CAT Classification":{"type":"STRING"},"Event Classification":{"type":"STRING"},"PCS Classification":{"type":"STRING"}},"required":["PCS Classification"]},"litigation":{"type":"OBJECT","properties":{"Any Litigation":{"type":"STRING","enum":["YES","NO"]},"Coverage/Insured Litigation":{"type":"ARRAY","items":{"type":"STRING"},"min_items":0}},"required":["Any Litigation"]}}}},
+  )
+  output = ""
+
+  for chunk in client.models.generate_content_stream(
+    model = model,
+    contents = contents,
+    config = generate_content_config,
+    ):
+    print(chunk.text, end="")
+    output = output + chunk.text
+  return pd.read_json(output)
 
 
 st.set_page_config(layout="wide")
@@ -80,9 +130,14 @@ with col1:
         st.session_state.filelist = getfilelist(BUCKET_NAME)
     selected_file = st.selectbox("Select File", st.session_state.filelist, key="selected_file")
     summary_clicked = st.button("Generate Summary")
+    json_clicked = st.button("Generate Claims Data")
+
 with col2:
     st.title("BUD Claims")
     if summary_clicked:
        st.write(selected_file)
        with st.container(border=True):
         st.markdown(generate(f"gs://{BUCKET_NAME}/{selected_file}"))
+    if json_clicked:
+        with st.container(border=True):
+            st.dataframe(generatedataframe())
