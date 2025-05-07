@@ -89,6 +89,54 @@ def generate(file_uri):
     output = output + chunk.text
   return output
 
+def generategroundtruth(summarydata):
+  client = genai.Client(
+      vertexai=True,
+      project=PROJECT_ID,
+      location="us-central1",
+  )
+
+  
+
+  model = "gemini-2.0-flash-001"
+  contents = [
+    types.Content(
+      role="user",
+      parts=[
+        types.Part.from_text(text=f"""Can you create some sample groundtruth data based on 
+                             the Gemini generated summary given here: {summarydata}""")
+      ]
+    )
+  ]
+  generate_content_config = types.GenerateContentConfig(
+    temperature = 1,
+    top_p = 0.95,
+    max_output_tokens = 8192,
+    response_modalities = ["TEXT"],
+    safety_settings = [types.SafetySetting(
+      category="HARM_CATEGORY_HATE_SPEECH",
+      threshold="OFF"
+    ),types.SafetySetting(
+      category="HARM_CATEGORY_DANGEROUS_CONTENT",
+      threshold="OFF"
+    ),types.SafetySetting(
+      category="HARM_CATEGORY_SEXUALLY_EXPLICIT",
+      threshold="OFF"
+    ),types.SafetySetting(
+      category="HARM_CATEGORY_HARASSMENT",
+      threshold="OFF"
+    )],
+  )
+  output = ""
+  for chunk in client.models.generate_content_stream(
+    model = model,
+    contents = contents,
+    config = generate_content_config,
+    ):
+    print(chunk.text, end="")
+    output = output + chunk.text
+  return output
+
 
 def generatedataframe():
   client = genai.Client(
@@ -156,7 +204,14 @@ with col2:
     if summary_clicked:
       st.write(selected_file)
       with st.container(border=True):
-        st.markdown(generate(f"gs://{BUCKET_NAME}/{selected_file}"))
+        summarydata = generate(f"gs://{BUCKET_NAME}/{selected_file}")
+        subcol1, subcol2 = st.columns(2)
+        with subcol1:
+           st.title("Ground Truth")
+           st.markdown(generategroundtruth(summarydata))
+        with subcol2:
+           st.title("Summary")
+           st.markdown(summarydata)
       st.title("Source PDF File")
       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file).getvalue())
     if json_clicked:
