@@ -207,10 +207,10 @@ with col2:
         summarydata = generate(f"gs://{BUCKET_NAME}/{selected_file}")
         subcol1, subcol2 = st.columns(2)
         with subcol1:
-           st.title("Ground Truth")
+           st.subheader("Ground Truth")
            st.markdown(generategroundtruth(summarydata))
         with subcol2:
-           st.title("Summary")
+           st.subheader("Summary")
            st.markdown(summarydata)
       st.title("Source PDF File")
       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file).getvalue())
