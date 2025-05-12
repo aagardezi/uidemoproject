@@ -12,6 +12,7 @@ import helpercode
 
 BUCKET_NAME = os.environ.get("BUCKET_NAME")
 PROJECT_ID = helpercode.get_project_id()
+GEMINI_VERSION = "gemini-2.5-pro-preview-05-06"
 
 
 def getfilelist(bucket_name, prefix=""):
@@ -50,7 +51,7 @@ def generate(file_uri):
       mime_type="application/pdf",
   )
 
-  model = "gemini-2.0-flash-001"
+  model = GEMINI_VERSION
   contents = [
     types.Content(
       role="user",
@@ -98,7 +99,7 @@ def generategroundtruth(summarydata):
 
   
 
-  model = "gemini-2.0-flash-001"
+  model = GEMINI_VERSION
   contents = [
     types.Content(
       role="user",
@@ -145,9 +146,9 @@ def generatedataframe():
       location="us-central1",
   )
 
-  msg1_text1 = types.Part.from_text(text="""Can you generate some random claims data the follows the json schema specified. make sure there are 11 different entries""")
+  msg1_text1 = types.Part.from_text(text="""  """)
 
-  model = "gemini-2.0-flash-001"
+  model = "gemini-2.5-pro-preview-05-06"
   contents = [
     types.Content(
       role="user",
@@ -404,5 +405,5 @@ with col2:
       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file).getvalue())
     if json_clicked:
       with st.container(border=True):
-        with st.expander:
+        with st.expander("Detail Claims Data"):
           st.dataframe(generatedataframe())
