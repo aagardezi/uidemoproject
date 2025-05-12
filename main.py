@@ -404,4 +404,5 @@ with col2:
       pdf_viewer(input=download_pdf_from_gcs(BUCKET_NAME, selected_file).getvalue())
     if json_clicked:
       with st.container(border=True):
-        st.dataframe(generatedataframe())
+        with st.expander:
+          st.dataframe(generatedataframe())
