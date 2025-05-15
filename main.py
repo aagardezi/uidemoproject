@@ -377,13 +377,27 @@ def generatedataframe():
     output = output + chunk.text
   return pd.read_json(output)
 
+claim_summary = {}
+
+claim_summary[1234567] = "This is a summary of the claim"
+claim_summary[2345678] = "This is a summary of the claim 2"
+claim_summary[3456789] = "This is a summary of the claim 3"
+claim_summary[4567890] = "This is a summary of the claim 4"
+claim_summary[5678901] = "This is a summary of the claim 5"
+claim_summary[6789012] = "This is a summary of the claim 6"
+claim_summary[7890123] = "This is a summary of the claim 7"
+claim_summary[8901234] = "This is a summary of the claim 8"
+claim_summary[9012345] = "This is a summary of the claim 9"
+
+
 
 st.set_page_config(layout="wide")
 col1, col2 = st.columns([1,3])
 with col1:
     st.image("image/logo.png", width=150)
     if "filelist" not in st.session_state:
-        st.session_state.filelist = getfilelist(BUCKET_NAME)
+        # st.session_state.filelist = getfilelist(BUCKET_NAME)
+        st.session_state.filelist = claim_summary.keys()
     selected_file = st.selectbox("Select File", st.session_state.filelist, key="selected_file")
     summary_clicked = st.button("Generate Summary")
     json_clicked = st.button("Generate Claims Data")
@@ -393,11 +407,13 @@ with col2:
     if summary_clicked:
       st.write(selected_file)
       with st.container(border=True):
-        summarydata = generate(f"gs://{BUCKET_NAME}/{selected_file}")
+        # summarydata = generate(f"gs://{BUCKET_NAME}/{selected_file}")
+        summarydata = claim_summary[selected_file]
         subcol1, subcol2 = st.columns(2)
         with subcol1:
            st.subheader("Ground Truth")
-           st.markdown(generategroundtruth(summarydata))
+        #    st.markdown(generategroundtruth(summarydata))
+           st.markdown(generatedataframe())
         with subcol2:
            st.subheader("Summary")
            st.markdown(summarydata)
